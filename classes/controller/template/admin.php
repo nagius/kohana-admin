@@ -46,6 +46,7 @@ abstract class Controller_Template_Admin extends Controller_Template {
 
 			// Bind menu items
 			$this->template->menu->bind('links', $this->_config['menu']);
+			$this->template->menu->bind('sublinks', $this->_config['submenu'][$this->_current_nav]);
 
 			// Prepare media arrays
 			$this->template->set_global('styles', array());
@@ -61,6 +62,24 @@ abstract class Controller_Template_Admin extends Controller_Template {
 		if ($key)
 		{
 			$this->_config['menu'][$key] = NULL;
+		}
+
+		// If a submenu is defined
+		if(isset($this->_config['submenu'][$this->_current_nav]))
+		{
+			// Unset current action sublink
+			$key = array_search($this->request->action, $this->_config['submenu'][$this->_current_nav]);
+			if ($key)
+			{
+				$this->_config['submenu'][$this->_current_nav][$key] = NULL;
+			}
+
+			// Prepend current navigation path to all menu's actions
+			foreach($this->_config['submenu'][$this->_current_nav] as $key => $action)
+			{
+				if(!empty($action))
+					$this->_config['submenu'][$this->_current_nav][$key] = $this->_current_nav.'/'.$action;
+			}
 		}
 
 		parent::after();

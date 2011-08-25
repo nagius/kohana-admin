@@ -47,6 +47,11 @@ abstract class Controller_Admin_Base extends Controller_Template_Admin {
 	protected $_view_map = array('default' => 'admin/layout/narrow_column');
 
 	/**
+	 * @var array   Action-to-context_menu view map
+	 */
+	protected $_view_menu_map = array();
+
+	/**
 	 * Sets up admin framework controllers
 	 *
 	 * - Redirects invalid internal-only access requests to the admin main
@@ -164,8 +169,14 @@ abstract class Controller_Admin_Base extends Controller_Template_Admin {
 				$view = isset($this->_view_map[$this->request->action])
 					? $this->_view_map[$this->request->action]
 					: $this->_view_map['default'];
+
+				// Switch between standard menu and context menu
+				$menu = isset($this->_view_menu_map[$this->request->action])
+					? View::factory($this->_view_menu_map[$this->request->action])
+					: $this->_menu();
+
 				$this->template->content = View::factory($view)
-					->set('menu', $this->_menu())
+					->set('menu', $menu)
 					->set('content', $content);
 			}
 			// Else append current info/error messages to internal response
