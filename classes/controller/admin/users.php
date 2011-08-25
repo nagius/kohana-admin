@@ -86,7 +86,6 @@ class Controller_Admin_Users extends Controller_Admin {
 			$this->request->response = json_encode(
 				View::factory('admin/users/list_tbody')
 					->bind('users', $users)
-					->bind('request', $this->request)
 					->render()
 			);
 		}
@@ -96,7 +95,6 @@ class Controller_Admin_Users extends Controller_Admin {
 			$this->template->content = View::factory('admin/users/list')
 				->set('tbody', View::factory('admin/users/list_tbody')
 					->bind('users', $users)
-					->bind('request', $this->request)
 				);
 		}
 	}

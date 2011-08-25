@@ -51,6 +51,9 @@ abstract class Controller_Template_Admin extends Controller_Template {
 			// Prepare media arrays
 			$this->template->set_global('styles', array());
 			$this->template->set_global('scripts', array());
+
+			// To build internals links in views
+			$this->template->bind_global('request', $this->request);
 		}
 	}
 
