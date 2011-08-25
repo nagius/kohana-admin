@@ -22,9 +22,15 @@ class Controller_Admin_Users extends Controller_Admin {
 	protected $_acl_required = 'all';
 
 	protected $_view_map = array(
-		'new'     => 'admin/layout/narrow_column_with_menu',
-		'edit'    => 'admin/layout/narrow_column_with_menu',
-		'default' => 'admin/layout/wide_column_with_menu',
+		'new'     => 'admin/layout/narrow_column',
+		'edit'    => 'admin/layout/narrow_column',
+		'list' => 'admin/layout/wide_column_with_menu',
+		'default' => 'admin/layout/full_width',
+	);
+
+	protected $_view_menu_map = array(
+		'list'     => 'admin/users/menu/list',
+		// 'default' is _menu()
 	);
 
 	protected $_resource_required = array('view', 'edit', 'delete');
@@ -35,7 +41,7 @@ class Controller_Admin_Users extends Controller_Admin {
 	 * Generate menu for user management
 	 */
 	protected function _menu() {
-		return View::factory('admin/users/menu');
+		return View::factory('admin/users/menu/default');
 	}
 
 	/**
@@ -63,9 +69,36 @@ class Controller_Admin_Users extends Controller_Admin {
 	 */
 	public function action_list() {
 		Kohana::$log->add(Kohana::DEBUG, 'Executing Controller_Users::action_list');
-		$this->template->content = View::factory('admin/users/list')
-			->bind('users', $users);
-		$users = Sprig::factory('user')->load(NULL, FALSE);
+
+		// Build request
+		$query = DB::select();
+
+		if(isset($_POST['username']))
+		{
+			$query->where('username','like',"%".$_POST['username']."%");
+		}
+
+		$users = Sprig::factory('user')->load($query, FALSE);
+
+		if(Request::$is_ajax)
+		{
+			// return a json encoded HTML table
+			$this->request->response = json_encode(
+				View::factory('admin/users/list_tbody')
+					->bind('users', $users)
+					->bind('request', $this->request)
+					->render()
+			);
+		}
+		else
+		{
+			// Send full page
+			$this->template->content = View::factory('admin/users/list')
+				->set('tbody', View::factory('admin/users/list_tbody')
+					->bind('users', $users)
+					->bind('request', $this->request)
+				);
+		}
 	}
 
 	/**
@@ -193,16 +226,38 @@ class Controller_Admin_Users extends Controller_Admin {
 	public function action_delete() {
 		Kohana::$log->add(Kohana::DEBUG, 'Executing Controller_Users::action_delete');
 
+		// Bind locally
+		$user = & $this->_resource;
+		$name = $user->username;
+
+		if(Request::$is_ajax)
+		{
+			try
+			{
+				$user->delete();
+				$this->request->response = json_encode(
+					array('success' => TRUE, 'flash_class' => 'success', 'text'=>'The user, '.$name.' has been deleted.')
+				); //return a json encoded result
+
+			}
+			catch (Exception $e)
+			{
+				Kohana::$log->add(Kohana::ERROR, 'Error occured deleting user, id='.$user->id.', '.$e->getMessage());
+				$this->request->response = json_encode(
+					array('success' => FALSE, 'flash_class' => "error", 'text'=> 'An error occured deleting photo,'.$name)
+				);
+
+			}
+			return; //End ajax
+		}
+
+
 		// If deletion is not desired, redirect to list
 		if (isset($_POST['no']))
 			$this->request->redirect( $this->request->uri(array('action'=>'list')) );
 
 		$this->template->content = View::factory('admin/users/delete')
 			->bind('user', $this->_resource);
-
-		// Bind locally
-		$user = & $this->_resource;
-		$name = $user->username;
 
 		// If deletion is confirmed
 		if (isset($_POST['yes']))
