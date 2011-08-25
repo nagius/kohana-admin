@@ -25,7 +25,7 @@ class Controller_Admin_Users extends Controller_Admin {
 		'new'     => 'admin/layout/narrow_column',
 		'edit'    => 'admin/layout/narrow_column',
 		'list' => 'admin/layout/wide_column_with_menu',
-		'default' => 'admin/layout/full_width',
+		'default' => 'admin/layout/wide_column',
 	);
 
 	protected $_view_menu_map = array(
