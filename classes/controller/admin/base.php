@@ -151,22 +151,30 @@ abstract class Controller_Admin_Base extends Controller_Template_Admin {
 	public function after() {
 		$content = $this->template->content;
 
-		// If external request, insert into layout template
-		if ( ! $this->_internal)
+		if(Request::$is_ajax)
 		{
-			$view = isset($this->_view_map[$this->request->action])
-				? $this->_view_map[$this->request->action]
-				: $this->_view_map['default'];
-			$this->template->content = View::factory($view)
-				->set('menu', $this->_menu())
-				->set('content', $content);
+			$this->auto_render=false; //Disable the auto renderer, we don't want a layout in our ajax response
+			$this->request->headers['Content-Type'] = 'application/json';
 		}
-		// Else append current info/error messages to internal response
-		// and replace template with content
 		else
 		{
-			$messages = Message::instance()->get();
-			$this->template = $messages.$content;
+			// If external request, insert into layout template
+			if ( ! $this->_internal)
+			{
+				$view = isset($this->_view_map[$this->request->action])
+					? $this->_view_map[$this->request->action]
+					: $this->_view_map['default'];
+				$this->template->content = View::factory($view)
+					->set('menu', $this->_menu())
+					->set('content', $content);
+			}
+			// Else append current info/error messages to internal response
+			// and replace template with content
+			else
+			{
+				$messages = Message::instance()->get();
+				$this->template = $messages.$content;
+			}
 		}
 
 		parent::after();
