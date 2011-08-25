@@ -69,7 +69,18 @@ abstract class Controller_Template_Admin extends Controller_Template {
 		{
 			// Unset current action sublink
 			$key = array_search($this->request->action, $this->_config['submenu'][$this->_current_nav]);
-			if ($key)
+			if($key === FALSE)
+			{
+				// Match controler and action
+				$key = array_search($this->request->controller."/".$this->request->action, $this->_config['submenu'][$this->_current_nav]);
+				if($key === FALSE)
+				{
+					// Match controler only (if a submenu belong to many actions)
+					$key = array_search($this->request->controller, $this->_config['submenu'][$this->_current_nav]);
+				}
+			}
+
+			if($key)
 			{
 				$this->_config['submenu'][$this->_current_nav][$key] = NULL;
 			}
