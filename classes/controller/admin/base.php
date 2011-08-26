@@ -178,6 +178,9 @@ abstract class Controller_Admin_Base extends Controller_Template_Admin {
 				$this->template->content = View::factory($view)
 					->set('menu', $menu)
 					->set('content', $content);
+
+				if($user = $this->a2->get_user())
+					$this->template->header->set('username', $user->username);
 			}
 			// Else append current info/error messages to internal response
 			// and replace template with content
